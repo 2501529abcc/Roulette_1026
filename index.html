@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#102b26">
+  <meta name="description" content="スタートを押して運試し。0と00を含むアメリカンルーレット。">
+  <title>Roulette | 今日の運を、ひと回し。</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="roulette.js" defer></script>
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <header class="header"><a class="brand" href="./"><span class="brand-icon">R</span> Roulette<span class="brand-dot">.</span></a><span class="edition">AMERICAN EDITION <span>0 / 00</span></span></header>
+  <main>
+    <div class="intro"><p class="eyebrow">PLACE YOUR BET.</p><h1>その一球に、<span>予想を賭ける。</span></h1><p class="lead">赤・黒・数字1つ。賭け先と金額を決めてスタート。</p></div>
+    <div class="game">
+      <section class="wheel-panel" aria-label="ルーレット盤">
+        <div class="wheel-top"><span class="live-dot"></span><span id="wheel-status">READY TO SPIN</span><span class="pockets">38 POCKETS</span></div>
+        <div class="wheel-stage"><div class="pointer" aria-hidden="true"></div><canvas id="wheel" width="1000" height="1000" role="img" aria-label="0・00・1から36の38マスのアメリカンルーレット"></canvas><div id="ball-track" class="ball-track" aria-hidden="true"><span class="ball"></span></div><div class="hub" aria-hidden="true"><span>R</span><small>ROULETTE</small></div></div>
+        <div class="wheel-caption"><span class="tiny-ball"></span> 白い玉が止まった数字が今回の結果</div>
+      </section>
+      <section class="control-panel" aria-label="操作と結果">
+        <div class="wallet"><div><span>所持コイン</span><strong id="balance">2,000</strong></div><button id="reset" type="button">最初から</button></div>
+        <fieldset id="bet-controls" class="bet-controls">
+          <legend>1. 賭け先を選ぶ</legend>
+          <div class="bet-types">
+            <label class="bet-choice red-choice"><input type="radio" name="bet-type" value="red"><span>赤<small>払戻し 2倍</small></span></label>
+            <label class="bet-choice black-choice"><input type="radio" name="bet-type" value="black"><span>黒<small>払戻し 2倍</small></span></label>
+            <label class="bet-choice"><input type="radio" name="bet-type" value="straight"><span>数字1つ<small>払戻し 36倍</small></span></label>
+          </div>
+          <div id="number-picker" hidden><label for="bet-number">賭ける数字</label><select id="bet-number"><option value="">数字を選択</option></select></div>
+          <label for="bet-amount" class="amount-label">2. 賭けるコイン</label>
+          <input id="bet-amount" type="number" min="1" step="1" value="0" inputmode="numeric">
+          <div class="quick-bets"><button type="button" data-amount="100">+100</button><button type="button" data-amount="500">+500</button><button type="button" data-amount="1000">+1,000</button><button type="button" data-amount="all">全額</button></div>
+          <p id="bet-preview" class="bet-preview" aria-live="polite">赤・黒・数字1つから選んでください。</p>
+        </fieldset>
+        <div class="result-card"><div class="card-label"><span>YOUR NUMBER</span><span id="round">ROUND 01</span></div><div id="result" class="result" data-color="idle" aria-live="polite" aria-atomic="true"><span id="result-number">?</span><span id="result-description">次は、どの数字？</span></div><p id="message" class="message">準備ができたら、運試し。</p></div>
+        <button id="spin" class="spin-button" type="button"><span id="spin-label">スタート</span><span class="button-icon" aria-hidden="true">↗</span></button>
+        <div class="options"><span>1回につき賭け先は1つ</span><span>1回 約6秒</span></div>
+        <div class="history-card"><div class="history-heading"><h2>これまでの結果</h2><button id="clear" type="button">クリア</button></div><ol id="history" aria-label="新しい順の結果"></ol><p id="empty-history">ひと回し目の結果を待っています。</p></div>
+        <details class="rules"><summary>配当とルール</summary><p>初期所持金は2,000コイン。1コイン単位で、所持金以内の金額を賭けられます。</p><p>赤・黒の利益は賭け金の1倍（元金込みで2倍）。数字1つの利益は35倍（元金込みで36倍）。外れた場合は賭け金を失います。</p><p>0・00は緑のマスです。赤・黒へのベットは、0・00が出ると外れです。数字1つへのベットでは0・00も選べます。38マスの当選確率はすべて同じです。</p><p>回転開始時に賭け金を引き、的中時に払戻しを加算します。回転中の再読み込みでは賭け金は戻りません。所持金が0になったら「最初から」で再開できます。</p></details>
+        <p class="note">ゲーム内の仮想コインを使用します。購入・換金はできません。</p>
+      </section>
+    </div>
+  </main>
+  <footer><span>ROULETTE / MADE FOR A LITTLE LUCK</span><span>次のひと回しに、ちょっと期待。</span></footer>
+</body>
+</html>
