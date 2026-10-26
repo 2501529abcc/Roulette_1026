@@ -5,7 +5,7 @@
   const ctx = canvas.getContext('2d');
   const button = $('spin');
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-  let angle = 0, spinning = false, round = 0, history = [], balance = 2000, activeBet;
+  let angle = 0, spinning = false, round = 0, history = [], balance = 2000, activeBet, chanceLost = false;
   const betTypes = [...document.querySelectorAll('input[name="bet-type"]')];
   const quickBets = [...document.querySelectorAll('[data-amount]')];
   const format = value => value.toLocaleString('ja-JP');
@@ -17,10 +17,13 @@
   } catch { /* Storage is optional. */ }
   try {
     const stored = JSON.parse(localStorage.getItem('roulette-wallet-v2') || 'null');
-    if (stored && Number.isSafeInteger(stored.balance) && stored.balance >= 0) balance = stored.balance;
+    if (stored && Number.isSafeInteger(stored.balance) && stored.balance >= 0) {
+      balance = stored.balance;
+      chanceLost = stored.chanceLost === true;
+    }
   } catch { /* Storage is optional. */ }
   function saveBalance() {
-    try { localStorage.setItem('roulette-wallet-v2', JSON.stringify({balance})); } catch { /* Play without storage. */ }
+    try { localStorage.setItem('roulette-wallet-v2', JSON.stringify({balance, chanceLost})); } catch { /* Play without storage. */ }
   }
   function currentBet() {
     return {type:betTypes.find(input => input.checked)?.value, number:$('bet-number').value, amount:Number($('bet-amount').value)};
@@ -30,6 +33,10 @@
   }
   function updateBet() {
     const bet=currentBet();
+    $('loser-banner').hidden=spinning || balance!==0 || !chanceLost;
+    $('last-chance').hidden=spinning || balance!==0 || chanceLost;
+    $('chance-red').disabled=spinning || chanceLost || balance!==0;
+    $('chance-black').disabled=spinning || chanceLost || balance!==0;
     $('balance').textContent=format(balance);
     $('bet-amount').max=String(balance);
     $('number-picker').hidden=bet.type !== 'straight';
@@ -38,7 +45,7 @@
     button.disabled=spinning || !Roulette.validBet(bet,balance);
     if(spinning) return;
     if(balance===0) {
-      $('bet-preview').textContent='所持金が0です。「最初から」で再開できます。';
+      $('bet-preview').textContent=chanceLost?'ゲーム終了。「最初から」で再開できます。':'LAST CHANCE！上部で赤か黒を選ぶと、1,000コイン復活のチャンス。';
     } else if(!bet.type || (bet.type==='straight' && !bet.number)) {
       $('bet-preview').textContent=bet.type==='straight'?'賭ける数字を選んでください。':'赤・黒・数字1つから選んでください。';
     } else if(!Roulette.validBet(bet,balance)) {
@@ -95,10 +102,13 @@
     $('result-description').textContent=colorNames[color];
     $('result').dataset.color=color;
     $('result').classList.add('reveal');
-    const returned=Roulette.payout(activeBet,number);
+    const returned=activeBet.chance ? (activeBet.type===color ? 1000 : 0) : Roulette.payout(activeBet,number);
+    if(activeBet.chance && returned>0) chanceLost=false;
     balance+=returned; saveBalance();
     const net=returned-activeBet.amount;
-    $('message').textContent=returned>0
+    $('message').textContent=activeBet.chance
+      ? (returned>0?'LAST CHANCE 成功！1,000コインで復活！':'LAST CHANCE 失敗。LOSER ― ゲーム終了。')
+      : returned>0
       ? `的中！払戻し ${format(returned)} コイン（収支 +${format(net)}）`
       : `はずれ。${betLabel(activeBet)}：−${format(activeBet.amount)} コイン。${balance===0?'所持金が0になりました。':''}`;
     canvas.setAttribute('aria-label',`ルーレットの結果：${number}、${colorNames[color]}`);
@@ -114,8 +124,11 @@
     let index;
     try { index=Roulette.randomIndex(); } catch { $('message').textContent='ブラウザを更新して、もう一度お試しください。'; return; }
     activeBet={...bet}; balance-=activeBet.amount; saveBalance();
+    startSpin(index);
+  });
+  function startSpin(index) {
     spinning=true; updateBet(); $('clear').disabled=true;
-    $('bet-preview').textContent=`${betLabel(activeBet)} に ${format(activeBet.amount)} コインをベット済み`;
+    $('bet-preview').textContent=activeBet.chance ? `LAST CHANCE：${betLabel(activeBet)}で勝負！` : `${betLabel(activeBet)} に ${format(activeBet.amount)} コインをベット済み`;
     round++; $('round').textContent=`ROUND ${String(round).padStart(2,'0')}`;
     $('result').classList.remove('reveal'); $('result').dataset.color='idle';
     $('result-number').textContent='…'; $('result-description').textContent='SPINNING';
@@ -134,7 +147,19 @@
       if(progress<1) requestAnimationFrame(frame); else finish(index,target);
     }
     requestAnimationFrame(frame);
-  });
+  }
+  function playChance(type) {
+    if(spinning || balance!==0 || chanceLost) return;
+    let index;
+    try {
+      do { index=Roulette.randomIndex(); } while(Roulette.color(Roulette.numbers[index])==='green');
+    } catch { $('message').textContent='ブラウザを更新して、もう一度お試しください。'; return; }
+    chanceLost=true; saveBalance();
+    activeBet={type,amount:0,chance:true};
+    startSpin(index);
+  }
+  $('chance-red').addEventListener('click',()=>playChance('red'));
+  $('chance-black').addEventListener('click',()=>playChance('black'));
   $('clear').addEventListener('click', () => { if(spinning) return; history=[]; saveHistory(); renderHistory(); });
   for(const number of ['0','00',...Array.from({length:36},(_,i)=>String(i+1))]) {
     const option=document.createElement('option'); option.value=number; option.textContent=number; $('bet-number').append(option);
@@ -151,7 +176,7 @@
   }));
   $('reset').addEventListener('click',()=>{
     if(spinning) return;
-    balance=2000; round=0; history=[]; saveBalance(); saveHistory();
+    balance=2000; round=0; history=[]; chanceLost=false; saveBalance(); saveHistory();
     betTypes.forEach(input=>{input.checked=false;});
     $('bet-number').value=''; $('bet-amount').value='0';
     $('round').textContent='ROUND 01'; $('result-number').textContent='?'; $('result-description').textContent='次は、どの数字？';

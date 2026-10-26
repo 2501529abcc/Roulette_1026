@@ -13,6 +13,13 @@
 <body>
   <header class="header"><a class="brand" href="./"><span class="brand-icon">R</span> Roulette<span class="brand-dot">.</span></a><span class="edition">AMERICAN EDITION <span>0 / 00</span></span></header>
   <main>
+    <div id="loser-banner" class="loser-banner" role="status" hidden>LOSER</div>
+    <section id="last-chance" class="last-chance" aria-labelledby="chance-title" hidden>
+      <h2 id="chance-title">LAST CHANCE</h2>
+      <p>赤か黒か、最後の二択。的中率50％。当てれば1,000コインで復活！</p>
+      <div class="chance-buttons"><button id="chance-red" type="button">赤で勝負</button><button id="chance-black" type="button">黒で勝負</button></div>
+      <p class="chance-note">この復活チャレンジでは0・00は出ません。外れたらゲーム終了。</p>
+    </section>
     <div class="intro"><p class="eyebrow">PLACE YOUR BET.</p><h1>その一球に、<span>予想を賭ける。</span></h1><p class="lead">赤・黒・数字1つ。賭け先と金額を決めてスタート。</p></div>
     <div class="game">
       <section class="wheel-panel" aria-label="ルーレット盤">
